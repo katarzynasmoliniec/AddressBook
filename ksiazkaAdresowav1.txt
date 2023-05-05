@@ -1,0 +1,484 @@
+#include <iostream>
+#include <windows.h>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+struct Person
+{
+    int id = 0;
+    string name = "", surname = "", numberPhone = "", mail = "", adress = "";
+};
+
+char addChar()
+{
+    string input = "";
+    char choise  = {0};
+
+    while (true)
+    {
+        getline(cin, input);
+
+        if (input.length() == 1)
+        {
+            choise = input[0];
+            break;
+        }
+        cout << "To nie jest pojedynczy znak. Wpisz ponownie." << endl;
+    }
+    return choise;
+}
+
+string addLine()
+{
+    string input = "";
+    getline(cin, input);
+    return input;
+}
+
+int addInteger()
+{
+    string input = "";
+    int number = 0;
+    while (true)
+    {
+        getline(cin, input);
+
+        stringstream myStream(input);
+        if (myStream >> number)
+            break;
+        cout << "To nie jest liczba. Wpisz ponownie. " << endl;
+    }
+    return number;
+}
+
+string konwertIntToString(int number)
+{
+    ostringstream ss;
+    ss << number;
+    string str = ss.str();
+    return str;
+}
+
+Person inputNewPersonToStuktur(string newString)
+{
+    Person person;
+    int numberOfSingleDataFromPerson = 1;
+    string singleDataFromPerson = "";
+
+    for (int numberOfLine = 0; numberOfLine < newString.length(); numberOfLine++)
+    {
+        if (newString[numberOfLine] != '|')
+        {
+            singleDataFromPerson += newString[numberOfLine];
+        }
+        else
+        {
+            switch(numberOfSingleDataFromPerson)
+            {
+            case 1:
+                person.id = atoi(singleDataFromPerson.c_str());
+                break;
+            case 2:
+                person.name = singleDataFromPerson;
+                break;
+            case 3:
+                person.surname = singleDataFromPerson;
+                break;
+            case 4:
+                person.numberPhone = singleDataFromPerson;
+                break;
+            case 5:
+                person.mail = singleDataFromPerson;
+                break;
+            case 6:
+                person.adress = singleDataFromPerson;
+                break;
+            }
+            singleDataFromPerson = "";
+            numberOfSingleDataFromPerson++;
+        }
+    }
+    return person;
+}
+
+void outputDataWithBook(vector<Person> &people)
+{
+    Person person;
+    string line = "";
+
+    fstream book;
+    book.open("ksiazka.txt", ios :: in);
+
+    if (book.good())
+    {
+        while(getline(book, line))
+        {
+            person = inputNewPersonToStuktur(line);
+            people.push_back(person);
+        }
+        book.close();
+    }
+}
+
+void allPeople(vector<Person> &people)
+{
+    system("cls");
+    if (!people.empty())
+    {
+        cout << ">>> KSIAZKA ADRESOWA <<<" << endl << endl;
+        for (vector<Person>::iterator itr = people.begin(); itr != people.end(); itr++)
+        {
+            cout << "1. Id: " << "\t" << "\t" << itr->id << endl;
+            cout << "2. Imie: " << "\t" << itr->name << endl;
+            cout << "3. Nazwisko: " << "\t" << itr->surname << endl;
+            cout << "4. Telefon: " << "\t" << itr->numberPhone << endl;
+            cout << "5. Adres mail: " << "\t" << itr->mail << endl;
+            cout << "6. Adres: " << "\t" << itr->adress << endl << endl;
+        }
+    }
+    else
+    {
+        cout << "Ksiazka adresowa jest pusta." << endl << endl;
+    }
+    system("pause");
+}
+
+void writePersonToBook(Person person)
+{
+    fstream book;
+    book.open("ksiazka.txt", ios :: out | ios :: app);
+    if (book.good())
+    {
+        book << person.id << '|' << person.name << '|' << person.surname << '|' << person.numberPhone << '|';
+        book << person.mail << '|' << person.adress << '|' << endl;
+        book.close();
+        cout << "Dane Przyjaciela zapisane!" << endl;
+        system("pause");
+    }
+    else
+    {
+        cout << "Nie udalo sie otworzyc pliku i zapisac do niego danych." << endl;
+        system("pause");
+    }
+}
+
+void addNewBook(vector<Person> &people)
+{
+    fstream book;
+    string line = "";
+
+    book.open("ksiazka.txt", ios :: out);
+    if (book.good())
+    {
+        for (vector<Person>::iterator itr = people.begin(); itr != people.end(); itr++)
+        {
+            line += konwertIntToString(itr->id) + '|';
+            line += itr->name + '|';
+            line += itr->surname + '|';
+            line += itr->numberPhone + '|';
+            line += itr->mail + '|';
+            line += itr->adress + '|';
+
+            book << line << endl;
+            line = "";
+        }
+        book.close();
+    }
+    else
+    {
+        cout << "Nie mozna otworzyc pliku." << endl;
+    }
+}
+
+void searchName(vector<Person> &people)
+{
+    bool foundFriend = false;
+    string searchOfName = "";
+
+    if (!people.empty())
+    {
+        cout << "Podaj imie Przyjaciela jakie mam odszukac: ";
+        searchOfName = addLine();
+        system("cls");
+
+        for (vector<Person>::iterator  itr = people.begin(); itr != people.end(); itr++)
+        {
+            if (itr->name == searchOfName)
+            {
+                foundFriend = true;
+                cout << "1. Id: " << "\t" << "\t" << itr->id << endl;
+                cout << "2. Imie: " << "\t" << itr->name << endl;
+                cout << "3. Nazwisko: " << "\t" << itr->surname << endl;
+                cout << "4. Telefon: " << "\t" << itr->numberPhone << endl;
+                cout << "5. Adres mail: " << "\t" << itr->mail << endl;
+                cout << "6. Adres: " << "\t" << itr->adress << endl << endl;
+            }
+        }
+        if ( !foundFriend)
+        {
+            cout << "W ksiazce nie ma Przyjaciela o takim imieniu!" << endl;
+        }
+    }
+    else
+    {
+        cout << "Ksiazka adresowa jest pusta" << endl << endl;
+    }
+    system("pause");
+}
+
+void searchSurname(vector<Person> &people)
+{
+    bool foundFriend = false;
+    string searchOfSurname = "";
+
+    if (!people.empty())
+    {
+        cout << "Podaj nazwisko Przyjaciela jakie mam odszukac: ";
+        searchOfSurname = addLine();
+        system("cls");
+
+        for (vector<Person>::iterator  itr = people.begin(); itr != people.end(); itr++)
+        {
+            if (itr->surname == searchOfSurname)
+            {
+                foundFriend = true;
+                cout << "1. Id: " << "\t" << "\t" << itr->id << endl;
+                cout << "2. Imie: " << "\t" << itr->name << endl;
+                cout << "3. Nazwisko: " << "\t" << itr->surname << endl;
+                cout << "4. Telefon: " << "\t" << itr->numberPhone << endl;
+                cout << "5. Adres mail: " << "\t" << itr->mail << endl;
+                cout << "6. Adres: " << "\t" << itr->adress << endl << endl;
+            }
+        }
+        if ( !foundFriend)
+        {
+            cout << "W ksiazce nie ma Przyjaciela o takim nazwisku!" << endl;
+        }
+    }
+    else
+    {
+        cout << "Ksiazka adresowa jest pusta" << endl << endl;
+    }
+    system("pause");
+}
+
+void addPerson(vector<Person> &people)
+{
+    Person person;
+
+    system("cls");
+    cout << ">>> DODAWANIE NOWEGO PRZYJACIELA <<<" << endl << endl;
+
+    if (people.size() == 0)
+    {
+        person.id = 1;
+    }
+    else
+    {
+        person.id = people.back().id + 1;
+    }
+
+    cout << "Podaj imie Przyjaciela: ";
+    person.name = addLine();
+    cout << "Podaj nazwisko Przyjaciela: ";
+    person.surname = addLine();
+    cout << "Podaj telefon Przyjaciela: ";
+    person.numberPhone = addLine();
+    cout << "Podaj mail Przyjaciela: ";
+    person.mail = addLine();
+    cout << "Podaj adres Przyjaciela: ";
+    person.adress = addLine();
+
+    people.push_back(person);
+    writePersonToBook(person);
+}
+
+void editPerson(vector<Person> &people)
+{
+    int searchId = 0;
+    bool foundFriend = false;
+    char choise;
+
+    system("cls");
+    if (!people.empty())
+    {
+        cout << ">>> Edycja Przyjaciela <<<" << endl << endl;
+        cout << "Podaj ID Przyjaciela, ktorego chcesz edytowac: ";
+        searchId = addInteger();
+
+        for (vector<Person>::iterator itr = people.begin(); itr != people.end(); itr++)
+        {
+            if (itr->id == searchId)
+            {
+                foundFriend = true;
+                system("cls");
+                cout << "===========================" << endl;
+                cout << "     Edycja Przyjaciela   " << endl;
+                cout << "===========================" << endl;
+                cout << "1. Zmien imie" << endl;
+                cout << "2. Zmien nazwisko" << endl;
+                cout << "3. Zmien numer telefonu" << endl;
+                cout << "4. Zmien adres mail" << endl;
+                cout << "5. Zmien adres" << endl;
+                cout << "6. Powrot do menu glownego" << endl;
+                cout << "Wybieram: ";
+                choise = addChar();
+
+                switch(choise)
+                {
+                case '1':
+                    cout << "Wpisz nowe imie: ";
+                    itr->name = addLine();
+                    cout << "Dane Przyjaciela zostaly zmienione" << endl;
+                    addNewBook(people);
+                    break;
+
+                case '2':
+                    cout << "Wpisz nowe nazwisko: ";
+                    itr->surname = addLine();
+                    cout << "Dane Przyjaciela zostaly zmienione" << endl;
+                    addNewBook(people);
+                    break;
+
+                case '3':
+                    cout << "Wpisz nowy numer telefonu: ";
+                    itr->numberPhone = addLine();
+                    cout << "Dane Przyjaciela zostaly zmienione" << endl;
+                    addNewBook(people);
+                    break;
+
+                case '4':
+                    cout << "Wpisz nowy adres mail: ";
+                    itr->mail = addLine();
+                    cout << "Dane Przyjaciela zostaly zmienione" << endl;
+                    addNewBook(people);
+                    break;
+
+                case '5':
+                    cout << "Wpisz nowy adres: ";
+                    itr->adress = addLine();
+                    cout << "Dane Przyjaciela zostaly zmienione" << endl;
+                    addNewBook(people);
+                    break;
+
+                case '6':
+                    cout << endl << "Powrot do menu glownego" << endl;
+                    break;
+                }
+            }
+        }
+        if (!foundFriend)
+        {
+            cout << "W ksiazce nie ma Przyjaciela o takim ID!" << endl;
+        }
+    }
+    else
+    {
+        cout << "Ksiazka adresowa jest pusta." << endl;
+    }
+    system("pause");
+}
+
+void deletePerson(vector<Person> &people)
+{
+    int searchId = 0;
+    char letterT;
+    bool foundFriend = false;
+
+    system("cls");
+    if (!people.empty())
+    {
+        cout << ">>> Usuwanie Przyjaciela <<<" << endl << endl;
+        cout << "Podaj ID Przyjaciela, ktorego chcesz usunac: ";
+
+        searchId = addInteger();
+
+        for (vector<Person>::iterator itr = people.begin(); itr != people.end(); itr++)
+        {
+            if (itr->id == searchId)
+            {
+                foundFriend = true;
+                cout << "Potwierdz naciskajac klawisz 't': ";
+                letterT = addChar();
+                if (letterT == 't')
+                {
+                    people.erase(itr);
+                    cout << "Przyjaciel zostal usuniety z kasiazki!" << endl;
+                    addNewBook(people);
+                    break;
+                }
+                else
+                {
+                    cout << "Wybrany Przyjaciel nie zostal usuniety" << endl << endl;
+                    break;
+                }
+            }
+        }
+        if ( !foundFriend)
+        {
+            cout << "W ksiazce nie ma Przyjaciela o takim ID!" << endl;
+        }
+    }
+    else
+    {
+        cout << "Ksiazka adresowa jest pusta" << endl << endl;
+    }
+    system("pause");
+}
+
+int main()
+{
+    vector <Person> people;
+    char choise;
+
+    outputDataWithBook(people);
+
+    while (1)
+    {
+        system("cls");
+        cout<<"==========================="<<endl;
+        cout<<"     KSIAZKA ADRESOWA v1   "<<endl;
+        cout<<"==========================="<<endl;
+        cout << "1. Dodaj przyjaciela" << endl;
+        cout << "2. Wyszukaj przyjaciela po imieniu" << endl;
+        cout << "3. Wyszukaj przyjaciela po nazwisku" << endl;
+        cout << "4. Wyswietl wszystkich przyjaciol" << endl;
+        cout << "5. Edytuj przyjaciela" << endl;
+        cout << "6. Usun przyjaciela" << endl;
+        cout << "9. Zakoncz program" << endl;
+        cout<<"==========================="<<endl;
+        cout<<"Wybieram: ";
+        choise = addChar();
+
+        switch(choise)
+        {
+        case '1':
+            addPerson(people);
+            break;
+        case '2':
+            searchName(people);
+            break;
+        case '3':
+            searchSurname(people);
+            break;
+        case '4':
+            allPeople(people);
+            break;
+        case '5':
+            editPerson(people);
+            break;
+        case '6':
+            deletePerson(people);
+            break;
+        case '9':
+            cout << endl << "Koniec programu." << endl;
+            exit (0);
+            break;
+        }
+    }
+    return 0;
+}
