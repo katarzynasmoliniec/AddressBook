@@ -19,6 +19,13 @@ struct Person
     string name = "", surname = "", numberPhone = "", mail = "", adress = "";
 };
 
+string addLine()
+{
+    string input = "";
+    getline(cin, input);
+    return input;
+}
+
 char addChar()
 {
     string input = "";
@@ -26,8 +33,7 @@ char addChar()
 
     while(true)
     {
-        getline(cin, input);
-
+        input = addLine();
         if (input.length() == 1)
         {
             choise = input[0];
@@ -38,20 +44,13 @@ char addChar()
     return choise;
 }
 
-string addLine()
-{
-    string input = "";
-    getline(cin, input);
-    return input;
-}
-
 int addInteger()
 {
     string input = "";
     int number = 0;
     while(true)
     {
-        getline(cin, input);
+        input = addLine();
         stringstream myStream(input);
         if (myStream >> number)
             break;
@@ -101,7 +100,7 @@ User inputNewUserToStuktur(string newString)
     return user;
 }
 
-void outputDataUsers(vector<User> &users)
+void loadUsersFromFile(vector<User> &users)
 {
     User user;
     string line = "";
@@ -116,13 +115,13 @@ void outputDataUsers(vector<User> &users)
             user = inputNewUserToStuktur(line);
             users.push_back(user);
         }
-        book.close();
     }
+    book.close();
 }
 
-void writeUserToBook(User user)
+void writeUserToBook(const User &user)
 {
-    fstream book;
+    ofstream book;
     book.open("Uzytkownicy.txt", ios :: out | ios :: app);
     if (book.good())
     {
@@ -238,7 +237,7 @@ int singIn(vector<User> &users)
     return 0;
 }
 
-void editPassword(vector<User> &users, int idUsers)
+void editPassword(vector<User> &users, const int idLogUsers)
 {
    User user;
    string newPassword = "";
@@ -248,7 +247,7 @@ void editPassword(vector<User> &users, int idUsers)
 
    for(vector<User>::iterator itr = users.begin(); itr != users.end(); itr++)
    {
-       if (itr->idUser == idUsers)
+       if (itr->idUser == idLogUsers)
        {
            itr->password = newPassword;
            cout << "Haslo zostalo zmienione!" << endl;
@@ -303,25 +302,28 @@ Person inputNewPersonToStuktur(string newString)
     return person;
 }
 
-void outputDataWithBook(vector<Person> &people, int idUsers)
+void loadPeopleFromFile(vector<Person> &people, const int idLogUsers)
 {
     Person person;
     string line = "";
-    fstream book;
+    ifstream book("KsiazkaAdresowa.txt", ios :: app);
+    book.close();
     book.open("KsiazkaAdresowa.txt", ios :: in);
 
-    if (book.good())
+    if (!book.is_open())
     {
-        while(getline(book, line))
-        {
-            person = inputNewPersonToStuktur(line);
-            if (person.idUser == idUsers)
-            {
-                people.push_back(person);
-            }
-        }
-        book.close();
+        cout << "Nie udalo sie otworzyc pliku i zapisac do niego danych.";
     }
+
+    while(getline(book, line))
+    {
+        person = inputNewPersonToStuktur(line);
+        if (person.idUser == idLogUsers)
+        {
+            people.push_back(person);
+        }
+    }
+    book.close();
 }
 
 void allPeople(vector<Person> &people)
@@ -347,7 +349,7 @@ void allPeople(vector<Person> &people)
     system("pause");
 }
 
-void writePersonToBook(Person person)
+void writePersonToBook(const Person &person)
 {
     fstream book;
     book.open("KsiazkaAdresowa.txt", ios :: out | ios :: app);
@@ -367,10 +369,10 @@ void writePersonToBook(Person person)
     }
 }
 
-void addNewBook(vector<Person> &people, int searchId)
+void addNewBook(vector<Person> &people, const int searchId)
 {
     Person person;
-    fstream book;
+    ifstream book;
     string line = "";
 
     book.open("KsiazkaAdresowa.txt",  ios :: in);
@@ -417,12 +419,12 @@ void searchName(vector<Person> &people)
 {
     bool foundFriend = false;
     string searchOfName = "";
+    system("cls");
 
     if (!people.empty())
     {
         cout << "Podaj imie Przyjaciela jakie chcesz odszukac: ";
         searchOfName = addLine();
-        system("cls");
 
         for (vector<Person>::iterator  itr = people.begin(); itr != people.end(); itr++)
         {
@@ -453,12 +455,12 @@ void searchSurname(vector<Person> &people)
 {
     bool foundFriend = false;
     string searchOfSurname = "";
+    system("cls");
 
     if (!people.empty())
     {
         cout << "Podaj nazwisko Przyjaciela jakie chcesz odszukac: ";
         searchOfSurname = addLine();
-        system("cls");
 
         for (vector<Person>::iterator  itr = people.begin(); itr != people.end(); itr++)
         {
@@ -505,13 +507,13 @@ int checkIdLastPerson()
     return idLastPerson;
 }
 
-void addPerson(vector<Person> &people, int idUsers)
+void addPerson(vector<Person> &people, const int idLogUsers)
 {
     Person person;
     system("cls");
     cout << ">>> DODAWANIE NOWEGO PRZYJACIELA <<<" << endl << endl;
     person.id = checkIdLastPerson() + 1;
-    person.idUser = idUsers;
+    person.idUser = idLogUsers;
     cout << "Podaj imie Przyjaciela: ";
     person.name = addLine();
     cout << "Podaj nazwisko Przyjaciela: ";
@@ -532,8 +534,8 @@ void deletePerson(vector<Person> &people)
     int searchId = 0;
     char letterT;
     bool foundFriend = false;
-
     system("cls");
+
     if (!people.empty())
     {
         cout << ">>> Usuwanie Przyjaciela <<<" << endl << endl;
@@ -578,8 +580,8 @@ void editPerson(vector<Person> &people)
     int searchId = 0;
     bool foundFriend = false;
     char choise;
-
     system("cls");
+
     if (!people.empty())
     {
         cout << ">>> Edycja Przyjaciela <<<" << endl << endl;
@@ -659,13 +661,13 @@ void editPerson(vector<Person> &people)
     Sleep(2000);
 }
 
-void newMenu(vector<User> &users, int idUsers)
+void newMenu(vector<User> &users, int idLogUsers)
 {
     vector<Person> people;
     char choise;
-    outputDataWithBook(people, idUsers);
+    loadPeopleFromFile(people, idLogUsers);
 
-    while (idUsers != 0 )
+    while (idLogUsers != 0 )
     {
         system("cls");
         cout<<"==========================="<<endl;
@@ -687,7 +689,7 @@ void newMenu(vector<User> &users, int idUsers)
         switch(choise)
         {
         case '1':
-            addPerson(people, idUsers);
+            addPerson(people, idLogUsers);
             break;
         case '2':
             searchName(people);
@@ -705,11 +707,11 @@ void newMenu(vector<User> &users, int idUsers)
             editPerson(people);
             break;
         case '7':
-            editPassword(users, idUsers);
+            editPassword(users, idLogUsers);
             break;
         case '9':
             cout << endl << "Wylogowales sie!" << endl;
-            idUsers = 0;
+            idLogUsers = 0;
             Sleep(1500);
             break;
         }
@@ -720,8 +722,8 @@ int main()
 {
     vector <User> users;
     char choise;
-    int idUsers = 0;
-    outputDataUsers(users);
+    int idLogUsers = 0;
+    loadUsersFromFile(users);
 
     while (1)
     {
@@ -742,15 +744,19 @@ int main()
             createAccount(users);
             break;
         case '2':
-            idUsers = singIn(users);
-            if (idUsers != 0)
+            idLogUsers = singIn(users);
+            if (idLogUsers != 0)
             {
-                newMenu(users, idUsers);
+                newMenu(users, idLogUsers);
             }
             break;
         case '3':
             cout << endl << "Koniec programu!" << endl;
             exit(0);
+            break;
+        default:
+            cout << "Wybrano niepoprawna opcje. Sproboj ponownie!" << endl;
+            Sleep(1500);
             break;
         }
     }
